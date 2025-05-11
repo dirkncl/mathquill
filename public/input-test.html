@@ -6,9 +6,6 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
-		<link rel="stylesheet" href="mathquill.css">
-		<script src="mathquill.js"></script>
-
 		<style>
 			.rule-container {
 				display: flex;
@@ -72,7 +69,9 @@
 
 		<div class="options-container"></div>
 
-		<script>
+		<script type="module">
+      import MathQuill from '../src/index.js';
+      
 			(() => {
 				const MQ = MathQuill.getInterface();
 				const mq_answer_AnSwEr0001 = document.getElementById('mq-answer-AnSwEr0001');

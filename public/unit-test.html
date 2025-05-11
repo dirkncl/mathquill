@@ -8,23 +8,40 @@
 		<title>MathQuill Unit Test</title>
 
 		<!-- mocha test framework -->
-		<script src="mocha/mocha.js"></script>
-		<link rel="stylesheet" href="mocha/mocha.css">
+		<!--<script src="mocha/mocha.js"></script>-->
+		<script src="https://cdn.jsdelivr.net/npm/mocha@11.2.0/mocha.js"></script>
+		<!--<link rel="stylesheet" href="mocha/mocha.css">-->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mocha@11.2.0/mocha.css">
 
 		<!-- include the library with the tests inlined -->
-		<script id="mathquill" src="mathquill.test.js" defer></script>
+	<script>
+		const post_xunit_to = new URLSearchParams(location.search).get('post_xunit_to');
+		mocha.setup({ui: 'tdd', reporter: post_xunit_to ? 'xunit' : 'html'});
+		let xunit = '';
+		Mocha.process.stdout.write = (line) => (xunit += line);
+	</script>
+		
+		<script type="module">
+      //var suite = mocha.suite
+      //console.log(mocha)
+      //globalThis.suite = suite
+    </script>
+    <!--<script id="mathquill" src="mathquill.test.js" defer></script>
 		<link rel="stylesheet" href="mathquill.css">
-	</head>
+	  -->
+  </head>
 
 	<body>
 		<h1>Unit Tests</h1>
 		<div id="mocha"></div>
 		<div id="mock"></div>
 
-		<script>
+		<script type="module">
+      import '../src/index.js' 
+      //import '../testjs/index.js' 
 			// configure mocha
-			const post_xunit_to = new URLSearchParams(location.search).get('post_xunit_to');
-			mocha.setup({ ui: 'tdd', reporter: post_xunit_to ? 'xunit' : 'html', bail: false });
+			//const post_xunit_to = new URLSearchParams(location.search).get('post_xunit_to');
+			//mocha.setup({ ui: 'tdd', reporter: post_xunit_to ? 'xunit' : 'html', bail: false });
 
 			teardown(() => {
 				const mock = document.getElementById('mock');
@@ -191,6 +208,8 @@
 					return xml.join('\n');
 				};
 			}
+      globalThis.suite = suite
 		</script>
+		<script type="module" src='../test/index.js'></script>
 	</body>
 </html>

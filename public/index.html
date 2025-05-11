@@ -6,11 +6,6 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
-		<!-- Load the MathQuill css -->
-		<link href="mathquill.css" rel="stylesheet">
-
-		<!-- Load MathQuill javascript -->
-		<script src="mathquill.js"></script>
 	</head>
 
 	<body>
@@ -22,7 +17,9 @@
 			<a href="http://docs.mathquill.com/en/latest/Getting_Started/">MathQuill&rsquo;s Getting Started Guide</a>
 		</p>
 
-		<script>
+		<script type="module">
+      import MathQuill from '../src/index.js'
+
 			const staticMathSpan = document.getElementById('static-math');
 			const mathFieldSpan = document.getElementById('math-field');
 			const latexSpan = document.getElementById('latex');

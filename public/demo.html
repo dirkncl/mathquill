@@ -8,7 +8,6 @@
 		<title>MathQuill Demo</title>
 
 		<link rel="stylesheet" href="home.css">
-		<link rel="stylesheet" href="mathquill.css">
 
 		<style>
 			code span {
@@ -98,7 +97,8 @@
 			<p>
 				In many applications, such as a chat client, you probably type mostly normal text with some math
 				interspersed, so there is also a MathQuill textbox that lets you type math between $'s:
-				<span class="mathquill-text-field">The Quadratic Equation is $x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}$</span>
+				<span class="mathquill-text-field">The Quadratic Equation is $x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}$</span><span> and </span>
+				<span class="mathquill-text-field">$\sin(x)$ and $\cos(x)$</span>
 			</p>
 
 			<p>
@@ -118,10 +118,12 @@
 				</span>
 			</p>
 		</div>
-		<script src="mathquill.js"></script>
-		<script>
+
+		<script type="module">
+      import MathQuill from '../src/index.js'
+      
 			(() => {
-				MQ = MathQuill.getInterface();
+				var MQ = MathQuill.getInterface();
 
 				const mathquillifyButton = document.getElementById('mathquillify-button');
 				const mathquillifyLatex = document.getElementById('mathquillify-latex');
@@ -145,8 +147,14 @@
 					.querySelectorAll('.static-math-tabbable')
 					.forEach((el) => MQ.StaticMath(el, { tabbable: true }));
 				document.querySelectorAll('.mathquill-math-field').forEach((el) => MQ.MathField(el));
-				document.querySelectorAll('.mathquill-text-field').forEach((el) => MQ.TextField(el));
-
+				//document.querySelectorAll('.mathquill-text-field').forEach((el) => MQ.TextField(el));
+        for(let el of document.getElementsByClassName('mathquill-text-field')) {
+          //console.log(el.firstChild.nodeValue)
+          //el.firstChild.nodeValue = el.firstChild.nodeValue.replace(/\$/g,'');
+          //el.firstChild.nodeValue = '$'+el.firstChild.nodeValue
+          //console.log(typeof el.firstChild.nodeValue)
+          MQ.TextField(el)
+        } 
 				const showHTMLSource = document.getElementById('show-html-source');
 				showHTMLSource.addEventListener('click', () => {
 					if (showHTMLSource.textContent === 'Hide Semantically Meaningful HTML Source') {

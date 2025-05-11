@@ -8,12 +8,12 @@
 		<title>MathQuill Visual Test Page</title>
 
 		<link rel="stylesheet" href="home.css">
-		<link rel="stylesheet" href="mathquill.css">
 
-		<script src="mathquill.js"></script>
-		<script>
+		<script type="module">
+      import MathQuill from '../src/index.js'
 			// Initial setup.
-			MQ = MathQuill.getInterface();
+			var MQ = MathQuill.getInterface();
+      globalThis.MQ = MQ
 			window.addEventListener('error', (err) => {
 				console.log(err);
 				document.querySelector('html').style.background = 'red';
@@ -104,9 +104,16 @@
 				<tr>
 					<td><span class="mathquill-math-field">\frac{d}{dx}\sqrt{x}=\frac{1}{2\sqrt{x}}</span></td>
 					<td>
+          <!--
 						<span class="mathquill-text-field"
 							>lolwut $a^2 + b^2 = c^2$. Also, awesomesauce: $\int_0^1 \sin x dx.</span
-						>
+						>-->
+						<span class="mathquill-text-field">lolwut $a^2 + b^2 = c^2$.</span>
+						<p>
+						</p>
+            <span>Also, awesomesauce: </span>
+						<span class="mathquill-text-field">$\int_0^1 \sin x dx.</span>
+
 					</td>
 					<td><span class="mathquill-static-math">\sqrt{\MathQuillMathField{x^2+y^2}}</span></td>
 				</tr>
@@ -123,7 +130,8 @@
 				should look the same as
 				<span class="mathquill-static-math">\sqrt{\pi\sqrt\sqrt\frac12}</span>
 			</p>
-			<script>
+		<script type="module">
+      //import MathQuill from '../js/index.js'
 				(() => {
 					let count = 0;
 					MQ.MathField(document.getElementById('reflowing-test'), {
@@ -158,7 +166,8 @@
 				shouldn't automatically become non-italicized).
 			</p>
 
-			<script>
+		<script type="module">
+      //import MathQuill from '../js/index.js'
 				MQ.MathField(document.getElementById('custom-behavior'), {
 					enableSpaceNavigation: true,
 					leftRightIntoCmdGoes: 'up',
@@ -190,12 +199,12 @@
 					\frac{d}{dx}\sqrt{x}=\frac{d}{dx}x^{\frac{1}{2}}=\frac{1}{2}x^{-\frac{1}{2}}=\frac{1}{2\sqrt{x}}
 				</span>
 				(for comparison:
-				<input
-					value="\frac{d}{dx}\sqrt{x}=\frac{d}{dx}x^{\frac{1}{2}}=\frac{1}{2}x^{-\frac{1}{2}}=\frac{1}{2\sqrt{x}}"
-				>)
+				<input value="\frac{d}{dx}\sqrt{x}=\frac{d}{dx}x^{\frac{1}{2}}=\frac{1}{2}x^{-\frac{1}{2}}=\frac{1}{2\sqrt{x}}">)
 			</p>
 
-			<script>
+		<script type="module">
+      //import MathQuill from '../js/index.js'
+
 				(() => {
 					const overflowTest = document.getElementById('overflow-test');
 					MQ.MathField(overflowTest);
@@ -455,7 +464,8 @@
 				<tr>
 					<td colspan="2"><span id="sixes"></span></td>
 				</tr>
-				<script>
+  		<script type="module">
+      //import MathQuill from '../js/index.js'
 					(() => {
 						let sixes = '';
 						for (let i = 10; i <= 40; i++) {
@@ -471,7 +481,9 @@
 				Parentheses vertical alignment at font sizes ranging from 10px to 24px:
 				<button id="paren-alignment-button">Click Me</button>
 			</p>
-			<script>
+      
+  		<script type="module">
+
 				document.getElementById('paren-alignment-button').addEventListener('click', () => {
 					const prevDiv = document.getElementById('paren-alignment-contents');
 					if (prevDiv) {
@@ -560,7 +572,9 @@
 				<span class="mathquill-static-math">\text{three spaces}</span>
 			</p>
 		</div>
-		<script>
+
+		<script type="module">
+
 			document.getElementById('show-textareas-button').addEventListener('click', () => {
 				document.body.classList.toggle('show-textareas');
 			});
@@ -644,6 +658,7 @@
 
 			// MQ(...).reflow()
 			document.querySelectorAll('#dynamic-reflow tr').forEach((row) => {
+        let td;
 				const math = row.querySelectorAll('span');
 				if (!math.length) return;
 
