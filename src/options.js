@@ -1,0 +1,331 @@
+// Options for the API objects
+import { BuiltInOpNames } from './constants.js';
+
+export class Options {
+    static config(currentOptions, newOptions) {
+        Object.assign(currentOptions, newOptions);
+    }
+    // Each option has a static variable for the default setting, and an instance variable for the setting of a
+    // particular math field.
+    // Wether mouse events are active for StaticMath blocks
+    static #mouseEvents = true;
+    #_mouseEvents;
+    get mouseEvents() {
+        return this.#_mouseEvents ?? Options.#mouseEvents;
+    }
+    set mouseEvents(mouseEvents) {
+        if (this instanceof Options)
+            this.#_mouseEvents = mouseEvents;
+        else
+            Options.#mouseEvents = mouseEvents;
+    }
+    // The set of commands that are automatically typeset without typing a preceding backslash.
+    static #autoCommands = { _maxLength: 0 };
+    #_autoCommands;
+    get autoCommands() {
+        return this.#_autoCommands ?? Options.#autoCommands;
+    }
+    set autoCommands(cmds) {
+        if (typeof cmds === 'object') {
+            if (this instanceof Options) {
+                this.#_autoCommands = { _maxLength: 0 };
+                Object.assign(this.#_autoCommands, cmds);
+            }
+            else
+                Object.assign(Options.#autoCommands, cmds);
+            return;
+        }
+        if (!/^\s*[a-z]+(?:\s+[a-z]+)*\s*$/i.test(cmds)) {
+            throw new Error(`"${cmds}" not a space-delimited list of only letters`);
+        }
+        const list = cmds.trim().split(/\s+/), dict = { _maxLength: 0 };
+        for (const cmd of list) {
+            if (cmd.length < 2)
+                throw new Error(`autocommand "${cmd}" not minimum length of 2`);
+            if (cmd in BuiltInOpNames)
+                throw new Error(`"${cmd}" is a built-in operator name`);
+            dict[cmd] = 1;
+            dict._maxLength = Math.max(dict._maxLength, cmd.length);
+        }
+        if (this instanceof Options)
+            this.#_autoCommands = dict;
+        else
+            Options.#autoCommands = dict;
+    }
+    addAutoCommands(cmds) {
+        if (!this.#_autoCommands)
+            this.autoCommands = Options.#autoCommands;
+        if (!this.#_autoCommands)
+            throw new Error('autoCommands setter not working');
+        const newCmds = cmds instanceof Array ? cmds.map((c) => c.trim()) : [cmds.trim()];
+        for (const cmd of newCmds) {
+            if (/\s/.test(cmd) || !/^[a-z]*$/i.test(cmd))
+                throw new Error(`${cmd} is not a valid autocommand name`);
+            if (cmd.length < 2)
+                throw new Error(`autocommand "${cmd}" not minimum length of 2`);
+            if (cmd in BuiltInOpNames)
+                throw new Error(`"${cmd}" is a built-in operator name`);
+            this.#_autoCommands[cmd] = 1;
+            this.#_autoCommands._maxLength = Math.max(this.#_autoCommands._maxLength, cmd.length);
+        }
+    }
+    removeAutoCommands(cmds) {
+        if (!this.#_autoCommands)
+            this.autoCommands = Options.#autoCommands;
+        if (!this.#_autoCommands)
+            throw new Error('autoCommands setter not working');
+        const removeCmds = cmds instanceof Array ? cmds.map((c) => c.trim()) : [cmds.trim()];
+        for (const cmd of removeCmds) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete this.#_autoCommands[cmd];
+        }
+        this.#_autoCommands._maxLength = Object.keys(this.#_autoCommands).reduce((l, cmd) => (cmd === '_maxLength' ? l : cmd.length > l ? cmd.length : l), 0);
+    }
+    // The set of operator names that MathQuill auto-unitalicizes.
+    static #autoOperatorNames = { _maxLength: 0 };
+    #_autoOperatorNames;
+    get autoOperatorNames() {
+        return this.#_autoOperatorNames ?? Options.#autoOperatorNames;
+    }
+    set autoOperatorNames(cmds) {
+        if (typeof cmds === 'object') {
+            if (this instanceof Options) {
+                this.#_autoOperatorNames = { _maxLength: 0 };
+                Object.assign(this.#_autoOperatorNames, cmds);
+            }
+            else
+                Object.assign(Options.#autoOperatorNames, cmds);
+            return;
+        }
+        if (!/^\s*[a-z]+(?:\s+[a-z]+)*\s*$/i.test(cmds)) {
+            throw new Error(`"${cmds}" not a space-delimited list of only letters`);
+        }
+        const list = cmds.trim().split(/\s+/), dict = { _maxLength: 0 };
+        for (const cmd of list) {
+            if (cmd.length < 2)
+                throw new Error(`"${cmd}" not minimum length of 2`);
+            dict[cmd] = 1;
+            dict._maxLength = Math.max(dict._maxLength, cmd.length);
+        }
+        if (this instanceof Options)
+            this.#_autoOperatorNames = dict;
+        else
+            Options.#autoOperatorNames = dict;
+    }
+    addAutoOperatorNames(cmds) {
+        if (!this.#_autoOperatorNames)
+            this.autoOperatorNames = Options.#autoOperatorNames;
+        if (!this.#_autoOperatorNames)
+            throw new Error('autoOperatorNames setter not working');
+        const newCmds = cmds instanceof Array ? cmds.map((c) => c.trim()) : [cmds.trim()];
+        for (const cmd of newCmds) {
+            if (/\s/.test(cmd) || !/^[a-z]*$/i.test(cmd))
+                throw new Error(`${cmd} is not a valid autocommand name`);
+            if (cmd.length < 2)
+                throw new Error(`"${cmd}" not minimum length of 2`);
+            this.#_autoOperatorNames[cmd] = 1;
+            this.#_autoOperatorNames._maxLength = Math.max(this.#_autoOperatorNames._maxLength, cmd.length);
+        }
+    }
+    removeAutoOperatorNames(cmds) {
+        if (!this.#_autoOperatorNames)
+            this.autoOperatorNames = Options.#autoOperatorNames;
+        if (!this.#_autoOperatorNames)
+            throw new Error('autoOperatorNames setter not working');
+        const removeCmds = cmds instanceof Array ? cmds.map((c) => c.trim()) : [cmds.trim()];
+        for (const cmd of removeCmds) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete this.#_autoOperatorNames[cmd];
+        }
+        this.#_autoOperatorNames._maxLength = Object.keys(this.#_autoOperatorNames).reduce((l, cmd) => (cmd === '_maxLength' ? l : cmd.length > l ? cmd.length : l), 0);
+    }
+    // Characters that "break out" of superscripts and subscripts
+    static #charsThatBreakOutOfSupSub = '';
+    #_charsThatBreakOutOfSupSub;
+    get charsThatBreakOutOfSupSub() {
+        return this.#_charsThatBreakOutOfSupSub ?? Options.#charsThatBreakOutOfSupSub;
+    }
+    set charsThatBreakOutOfSupSub(charsThatBreakOutOfSupSub) {
+        if (this instanceof Options)
+            this.#_charsThatBreakOutOfSupSub = charsThatBreakOutOfSupSub;
+        else
+            Options.#charsThatBreakOutOfSupSub = charsThatBreakOutOfSupSub;
+    }
+    // Not fully implemented stateless clipboard
+    static #statelessClipboard = false;
+    #_statelessClipboard;
+    get statelessClipboard() {
+        return this.#_statelessClipboard ?? Options.#statelessClipboard;
+    }
+    set statelessClipboard(statelessClipboard) {
+        if (this instanceof Options)
+            this.#_statelessClipboard = statelessClipboard;
+        else
+            Options.#statelessClipboard = statelessClipboard;
+    }
+    // If true then space will behave like tab escaping from the current block instead of inserting a space.
+    static #enableSpaceNavigation = false;
+    #_enableSpaceNavigation;
+    get enableSpaceNavigation() {
+        return this.#_enableSpaceNavigation ?? Options.#enableSpaceNavigation;
+    }
+    set enableSpaceNavigation(enableSpaceNavigation) {
+        if (this instanceof Options)
+            this.#_enableSpaceNavigation = enableSpaceNavigation;
+        else
+            Options.#enableSpaceNavigation = enableSpaceNavigation;
+    }
+    // Set to 'up' or 'down' so that left and right go up or down (respectively) into commands.
+    static #leftRightIntoCmdGoes = undefined;
+    #_leftRightIntoCmdGoes;
+    get leftRightIntoCmdGoes() {
+        return this.#_leftRightIntoCmdGoes ?? Options.#leftRightIntoCmdGoes;
+    }
+    set leftRightIntoCmdGoes(updown) {
+        if (updown && updown !== 'up' && updown !== 'down') {
+            throw new Error(`"up" or "down" required for leftRightIntoCmdGoes option, got "${updown}"`);
+        }
+        if (this instanceof Options)
+            this.#_leftRightIntoCmdGoes = updown;
+        else
+            Options.#leftRightIntoCmdGoes = updown;
+    }
+    // If true then you can type '[a,b)' and '(a,b]', but if you type '[x}' or '{x)', you'll get '[{x}]' or '{(x)}'
+    // instead.
+    static #restrictMismatchedBrackets = false;
+    #_restrictMismatchedBrackets;
+    get restrictMismatchedBrackets() {
+        return this.#_restrictMismatchedBrackets ?? Options.#restrictMismatchedBrackets;
+    }
+    set restrictMismatchedBrackets(restrictMismatchedBrackets) {
+        if (this instanceof Options)
+            this.#_restrictMismatchedBrackets = restrictMismatchedBrackets;
+        else
+            Options.#restrictMismatchedBrackets = restrictMismatchedBrackets;
+    }
+    // If true then when you type '\sum', '\prod', or '\coprod', the lower limit starts out with 'n='.
+    static #sumStartsWithNEquals = false;
+    #_sumStartsWithNEquals;
+    get sumStartsWithNEquals() {
+        return this.#_sumStartsWithNEquals ?? Options.#sumStartsWithNEquals;
+    }
+    set sumStartsWithNEquals(sumStartsWithNEquals) {
+        if (this instanceof Options)
+            this.#_sumStartsWithNEquals = sumStartsWithNEquals;
+        else
+            Options.#sumStartsWithNEquals = sumStartsWithNEquals;
+    }
+    // Disables typing of superscripts and subscripts when there's nothing to the left of the cursor.
+    static #supSubsRequireOperand = false;
+    #_supSubsRequireOperand;
+    get supSubsRequireOperand() {
+        return this.#_supSubsRequireOperand ?? Options.#supSubsRequireOperand;
+    }
+    set supSubsRequireOperand(supSubsRequireOperand) {
+        if (this instanceof Options)
+            this.#_supSubsRequireOperand = supSubsRequireOperand;
+        else
+            Options.#supSubsRequireOperand = supSubsRequireOperand;
+    }
+    // If true then the text output for an nth root will be 'x^(1/n)' instead of 'root(n,x)'.
+    static #rootsAreExponents = false;
+    #_rootsAreExponents;
+    get rootsAreExponents() {
+        return this.#_rootsAreExponents ?? Options.#rootsAreExponents;
+    }
+    set rootsAreExponents(rootsAreExponents) {
+        if (this instanceof Options)
+            this.#_rootsAreExponents = rootsAreExponents;
+        else
+            Options.#rootsAreExponents = rootsAreExponents;
+    }
+    // If true then the text output for the logarithm with base b of x will be 'log(x)/log(b)'.  Otherwise the output
+    // will be 'logb(b,x)'.  Note that this option does not affect base 10 output.  That is always "log10(x)".
+    static #logsChangeBase = false;
+    #_logsChangeBase;
+    get logsChangeBase() {
+        return this.#_logsChangeBase ?? Options.#logsChangeBase;
+    }
+    set logsChangeBase(logsChangeBase) {
+        if (this instanceof Options)
+            this.#_logsChangeBase = logsChangeBase;
+        else
+            Options.#logsChangeBase = logsChangeBase;
+    }
+    // Specifies the maximum number of nested MathBlocks allowed.
+    static #maxDepth = undefined;
+    #_maxDepth;
+    get maxDepth() {
+        return this.#_maxDepth ?? Options.#maxDepth;
+    }
+    set maxDepth(maxDepth) {
+        if (typeof maxDepth === 'number') {
+            if (this instanceof Options)
+                this.#_maxDepth = maxDepth;
+            else
+                Options.#maxDepth = maxDepth;
+        }
+    }
+    // If true then a number typed after a letter will automatically be put into a subscript.
+    static #autoSubscriptNumerals = false;
+    #_autoSubscriptNumerals;
+    get autoSubscriptNumerals() {
+        return this.#_autoSubscriptNumerals ?? Options.#autoSubscriptNumerals;
+    }
+    set autoSubscriptNumerals(autoSubscriptNumerals) {
+        if (this instanceof Options)
+            this.#_autoSubscriptNumerals = autoSubscriptNumerals;
+        else
+            Options.#autoSubscriptNumerals = autoSubscriptNumerals;
+    }
+    // If true then typing a slash gives the division symbol instead of a live fraction.
+    static #typingSlashWritesDivisionSymbol = false;
+    #_typingSlashWritesDivisionSymbol;
+    get typingSlashWritesDivisionSymbol() {
+        return this.#_typingSlashWritesDivisionSymbol ?? Options.#typingSlashWritesDivisionSymbol;
+    }
+    set typingSlashWritesDivisionSymbol(typingSlashWritesDivisionSymbol) {
+        if (this instanceof Options)
+            this.#_typingSlashWritesDivisionSymbol = typingSlashWritesDivisionSymbol;
+        else
+            Options.#typingSlashWritesDivisionSymbol = typingSlashWritesDivisionSymbol;
+    }
+    // If true then typing an asterisk gives the times symbol.
+    static #typingAsteriskWritesTimesSymbol = false;
+    #_typingAsteriskWritesTimesSymbol;
+    get typingAsteriskWritesTimesSymbol() {
+        return this.#_typingAsteriskWritesTimesSymbol ?? Options.#typingAsteriskWritesTimesSymbol;
+    }
+    set typingAsteriskWritesTimesSymbol(typingAsteriskWritesTimesSymbol) {
+        if (this instanceof Options)
+            this.#_typingAsteriskWritesTimesSymbol = typingAsteriskWritesTimesSymbol;
+        else
+            Options.#typingAsteriskWritesTimesSymbol = typingAsteriskWritesTimesSymbol;
+    }
+    substituteTextarea(tabbable) {
+        const textarea = document.createElement('textarea');
+        textarea.setAttribute('autocapitalize', 'off');
+        textarea.setAttribute('autocomplete', 'off');
+        textarea.setAttribute('spellcheck', 'false');
+        textarea.tabIndex = tabbable ? 0 : -1;
+        return textarea;
+    }
+    overridePaste;
+    overrideCut;
+    overrideCopy;
+    overrideTypedText;
+    overrideKeystroke;
+    ignoreNextMousedown = () => false;
+    blurWithCursor;
+    static #tabbable;
+    #_tabbable;
+    get tabbable() {
+        return typeof this.#_tabbable === 'boolean' ? this.#_tabbable : Options.#tabbable;
+    }
+    set tabbable(tabbable) {
+        if (this instanceof Options)
+            this.#_tabbable = tabbable;
+        else
+            Options.#tabbable = tabbable;
+    }
+}

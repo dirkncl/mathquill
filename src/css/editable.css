@@ -1,0 +1,58 @@
+.mq-editable-field {
+  display: inline-block;
+}
+.mq-editable-field .mq-cursor {
+  border-left: 1px solid black;
+  margin-left: -1px;
+  position: relative;
+  z-index: 1;
+  padding: 0;
+  display: inline-block;
+}
+.mq-editable-field .mq-cursor.mq-blink {
+  visibility: hidden;
+}
+.mq-editable-field,
+.mq-math-mode .mq-editable-field {
+  border: 1px solid gray;
+}
+.mq-editable-field.mq-focused,
+.mq-math-mode .mq-editable-field.mq-focused {
+  box-shadow: #8bd 0 0 0 0.2rem, inset #6ae 0 0 2px 0;
+  border-color: #709ac0cc;
+  border-radius: 1px;
+}
+.mq-math-mode .mq-editable-field {
+  margin: 1px;
+}
+.mq-editable-field .mq-latex-command-input {
+  color: inherit;
+  font-family: 'Courier New', monospace;
+  border: 1px solid gray;
+  padding-right: 1px;
+  margin-right: 1px;
+  margin-left: 2px;
+}
+.mq-editable-field .mq-latex-command-input.mq-empty {
+  background: transparent;
+}
+.mq-editable-field .mq-latex-command-input.mq-has-cursor {
+  border-color: ButtonBorder;
+}
+.mq-editable-field.mq-empty::after,
+.mq-editable-field.mq-text-mode::after,
+.mq-math-mode .mq-empty::after {
+  visibility: hidden;
+  content: 'c';
+}
+.mq-editable-field .mq-cursor:only-child::after,
+.mq-editable-field .mq-textarea + .mq-cursor:last-child::after {
+  visibility: hidden;
+  content: 'c';
+}
+.mq-editable-field .mq-text-mode .mq-cursor:only-child::after {
+  content: '';
+}
+.mq-editable-field.mq-text-mode {
+  overflow: auto hidden;
+}

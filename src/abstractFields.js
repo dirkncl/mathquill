@@ -1,0 +1,209 @@
+import { noop, mqBlockId, mqCmdId, LatexCmds } from './constants.js';
+import { Options } from './options.js';
+
+export class AbstractMathQuill {
+    __controller;
+    __options;
+    id;
+    revert;
+    static RootBlock;
+    constructor(ctrlr) {
+        this.__controller = ctrlr;
+        this.__controller.apiClass = this;
+        this.__options = ctrlr.options;
+        this.id = ctrlr.id;
+    }
+    __mathquillify(...classNames) {
+        const root = this.__controller.root, el = this.__controller.container;
+        this.__controller.createTextarea();
+        el.classList.add(...classNames);
+        const contents = Array.from(el.childNodes).map((child) => el.removeChild(child));
+        const rootEl = document.createElement('span');
+        rootEl.classList.add('mq-root-block');
+        rootEl.setAttribute(mqBlockId, root.id.toString());
+        //rootEl.setAttribute('aria-hidden', 'true');
+        rootEl.setAttribute('aria-hidden', 'undefined');
+        root.elements.add(rootEl);
+        el.append(rootEl);
+        this.latex(contents.reduce((ret, child) => (child.nodeType === 8 ? ret : `${ret}${child.textContent ?? ''}`), ''));
+        this.revert = () => {
+            while (el.firstChild)
+                el.firstChild.remove();
+            el.classList.remove('mq-editable-field', 'mq-math-mode', 'mq-text-mode');
+            if (this.__controller.mouseDownHandler)
+                el.removeEventListener('mousedown', this.__controller.mouseDownHandler);
+            el.append(...contents);
+            return el;
+        };
+        return this;
+    }
+    get options() {
+        return this.__options;
+    }
+    config(opts) {
+        Options.config(this.__options, opts);
+        return this;
+    }
+    el() {
+        return this.__controller.container;
+    }
+    text() {
+        return this.__controller.exportText();
+    }
+    latex(latex) {
+        if (typeof latex !== 'undefined') {
+            this.__controller.renderLatexMath(latex);
+            if (this.__controller.blurred)
+                this.__controller.cursor.hide().parent?.blur();
+            return this;
+        }
+        return this.__controller.exportLatex();
+    }
+    html() {
+        return this.__controller.root.elements
+            .html()
+            .replace(new RegExp(` (?:${mqBlockId}|${mqCmdId})="?\\d+"?`, 'g'), '')
+            .replace(/<span class="?mq-cursor( mq-blink)?"?>.?<\/span>/i, '')
+            .replace(/ mq-has-cursor|mq-has-cursor ?/, '')
+            .replace(/ class=(""|(?= |>))/g, '');
+    }
+    reflow() {
+        this.__controller.root.postOrder('reflow');
+        return this;
+    }
+    focus() {
+        if (document.activeElement === this.__controller.textarea)
+            this.__controller.textarea.dispatchEvent(new FocusEvent('focus'));
+        else
+            this.__controller.textarea?.focus();
+        return this;
+    }
+    blur() {
+        if (document.activeElement !== this.__controller.textarea)
+            this.__controller.textarea?.dispatchEvent(new FocusEvent('blur'));
+        else
+            this.__controller.textarea.blur();
+        return this;
+    }
+    setAriaLabel(ariaLabel) {
+        this.__controller.setAriaLabel(ariaLabel);
+        return this;
+    }
+    getAriaLabel() {
+        return this.__controller.getAriaLabel();
+    }
+    mathspeak() {
+        return this.__controller.exportMathSpeak();
+    }
+}
+export class EditableField extends AbstractMathQuill {
+    __mathquillify(...classNames) {
+        super.__mathquillify(...classNames);
+        this.__controller.editable = true;
+        this.__controller.delegateMouseEvents();
+        this.__controller.editablesTextareaEvents();
+        return this;
+    }
+    write(latex) {
+        this.__controller.writeLatex(latex);
+        this.__controller.scrollHoriz();
+        if (this.__controller.blurred)
+            this.__controller.cursor.hide().parent?.blur();
+        return this;
+    }
+    empty() {
+        const root = this.__controller.root, cursor = this.__controller.cursor;
+        root.eachChild('postOrder', 'dispose');
+        delete root.ends.left;
+        delete root.ends.right;
+        root.elements.empty();
+        delete cursor.selection;
+        cursor.insAtRightEnd(root);
+        return this;
+    }
+    cmd(cmd) {
+        const ctrlr = this.__controller.notify(), cursor = ctrlr.cursor;
+        if (/^\\[a-z]+$/i.test(cmd) && !cursor.isTooDeep()) {
+            cmd = cmd.slice(1);
+            const klass = LatexCmds[cmd];
+            if (klass) {
+                const newCmd = new klass(cmd);
+                if (cursor.selection)
+                    newCmd.replaces(cursor.replaceSelection());
+                newCmd.createLeftOf(cursor.show());
+                this.__controller.scrollHoriz();
+            }
+            else {
+                // TODO: API needs better error reporting
+            }
+        }
+        else
+            cursor.parent?.write(cursor, cmd);
+        if (ctrlr.blurred)
+            cursor.hide().parent?.blur();
+        return this;
+    }
+    select() {
+        this.__controller.selectAll();
+        return this;
+    }
+    clearSelection() {
+        this.__controller.cursor.clearSelection();
+        return this;
+    }
+    moveToDirEnd(dir) {
+        this.__controller.notify('move').cursor.insAtDirEnd(dir, this.__controller.root);
+        return this;
+    }
+    moveToLeftEnd() {
+        return this.moveToDirEnd('left');
+    }
+    moveToRightEnd() {
+        return this.moveToDirEnd('right');
+    }
+    keystroke(keys) {
+        const keyList = keys.replace(/^\s+|\s+$/g, '').split(/\s+/);
+        for (const key of keyList) {
+            const noPreventDefaultEvent = new KeyboardEvent('noop');
+            noPreventDefaultEvent.preventDefault = noop;
+            this.__controller.keystroke(key, noPreventDefaultEvent);
+        }
+        return this;
+    }
+    typedText(text) {
+        for (const char of text) {
+            this.__controller.typedText(char);
+        }
+        return this;
+    }
+    dropEmbedded(pageX, pageY, options) {
+        const el = document.elementFromPoint(pageX - window.scrollX, pageY - window.scrollY);
+        this.__controller.seek(el, pageX);
+        const cmd = new LatexCmds.embed().setOptions(options);
+        cmd.createLeftOf(this.__controller.cursor);
+    }
+    clickAt(clientX, clientY, target) {
+        target = target || document.elementFromPoint(clientX, clientY);
+        const ctrlr = this.__controller, root = ctrlr.root;
+        if (!root.elements.firstElement.contains(target))
+            target = root.elements.firstElement;
+        ctrlr.seek(target, clientX + window.scrollX);
+        // Force blurred window behavior to prevention selection of all content.
+        this.__controller.windowBlurred = true;
+        if (ctrlr.blurred)
+            this.focus();
+        this.__controller.windowBlurred = false;
+        return this;
+    }
+    ignoreNextMousedown(fn) {
+        this.__controller.cursor.options.ignoreNextMousedown = fn;
+        return this;
+    }
+    setAriaPostLabel(ariaPostLabel, timeout) {
+        this.__controller.setAriaPostLabel(ariaPostLabel, timeout);
+        return this;
+    }
+    getAriaPostLabel() {
+        return this.__controller.getAriaPostLabel();
+    }
+}

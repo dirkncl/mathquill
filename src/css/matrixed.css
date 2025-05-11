@@ -1,0 +1,7 @@
+.mq-math-mode .mq-matrixed {
+  background: white;
+  display: inline-block;
+}
+.mq-math-mode .mq-matrixed-container {
+  margin-top: -0.1em;
+}
